@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?><sqlb_project><db path="C:/Users/ravig/Downloads/archive (1)/olist.sqlite" readonly="0" foreign_keys="1" case_sensitive_like="0" temp_store="0" wal_autocheckpoint="1000" synchronous="2"/><attached/><window><main_tabs open="structure browser pragmas query" current="3"/></window><tab_structure><column_width id="0" width="300"/><column_width id="1" width="0"/><column_width id="2" width="100"/><column_width id="3" width="2089"/><column_width id="4" width="0"/><expanded_item id="0" parent="1"/><expanded_item id="1" parent="1"/><expanded_item id="2" parent="1"/><expanded_item id="3" parent="1"/></tab_structure><tab_browse><table title="customers" custom_title="0" dock_id="1" table="4,9:maincustomers"/><dock_state state="000000ff00000000fd00000001000000020000000000000000fc0100000001fb000000160064006f0063006b00420072006f00770073006500310100000000ffffffff0000011300ffffff000000000000000000000004000000040000000800000008fc00000000"/><default_encoding codec=""/><browse_table_settings/></tab_browse><tab_sql><sql name="SQL 1">SELECT * FROM customers LIMIT 10;
+SELECT name FROM sqlite_master WHERE type='table';
+SELECT
+    payment_type,
+    SUM(payment_value) AS total_payment
+FROM order_payments
+GROUP BY payment_type;
+
+SELECT
+    c.customer_state,
+    COUNT(o.order_id) AS total_orders
+FROM orders o
+JOIN customers c ON o.customer_id = c.customer_id
+GROUP BY c.customer_state
+ORDER BY total_orders DESC;
+
+SELECT
+    p.product_id,
+    p.product_category_name,
+    COUNT(oi.order_id) AS total_sold
+FROM order_items oi
+JOIN products p ON oi.product_id = p.product_id
+GROUP BY p.product_id
+ORDER BY total_sold DESC
+LIMIT 5;
+
+SELECT
+    p.product_category_name,
+    ROUND(AVG(r.review_score), 2) AS avg_score
+FROM order_items oi
+JOIN products p ON oi.product_id = p.product_id
+JOIN order_reviews r ON oi.order_id = r.order_id
+GROUP BY p.product_category_name
+ORDER BY avg_score DESC;
+
+SELECT
+    seller_city,
+    COUNT(seller_id) AS seller_count
+FROM sellers
+GROUP BY seller_city
+ORDER BY seller_count DESC
+LIMIT 10;
+
+-- Example: Customers from Sao Paulo
+SELECT * 
+FROM customers 
+WHERE customer_city = 'sao paulo'
+ORDER BY customer_zip_code_prefix;
+
+-- Example: Top 10 most expensive orders
+SELECT * 
+FROM order_items 
+ORDER BY price DESC 
+LIMIT 10;
+
+-- Example: Average payment value
+SELECT AVG(payment_value) AS avg_payment
+FROM order_payments;
+
+-- Example: Total number of sellers per city
+SELECT seller_city, COUNT(seller_id) AS seller_count
+FROM sellers
+GROUP BY seller_city
+ORDER BY seller_count DESC
+LIMIT 10;
+
+-- Example: Combine orders and payments
+SELECT o.order_id, c.customer_city, p.payment_value
+FROM orders o
+JOIN customers c ON o.customer_id = c.customer_id
+JOIN order_payments p ON o.order_id = p.order_id
+LIMIT 10;
+
+-- Example: Customers who made the highest payment
+SELECT customer_id 
+FROM orders 
+WHERE order_id IN (
+  SELECT order_id 
+  FROM order_payments 
+  WHERE payment_value = (
+    SELECT MAX(payment_value) 
+    FROM order_payments
+  )
+);
+
+DROP VIEW IF EXISTS top_selling_products;
+
+CREATE VIEW top_selling_products AS
+SELECT p.product_id, COUNT(*) AS total_orders
+FROM order_items oi
+JOIN products p ON oi.product_id = p.product_id
+GROUP BY p.product_id
+ORDER BY total_orders DESC;
+
+
+SELECT * FROM top_selling_products LIMIT 10;
+
+CREATE INDEX idx_order_customer ON orders(customer_id);
+
+
+
+
+
+
+
+
+
+</sql><current_tab id="0"/></tab_sql></sqlb_project>
